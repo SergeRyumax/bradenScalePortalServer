@@ -31,14 +31,6 @@ class Sala(db.Model):
 	numero = CharField()
 	andar = CharField()
 
-class Paciente(db.Model):
-	nome = CharField()
-	cpf = CharField()
-	dataNasc = DateTimeField()
-	sexo = IntegerField()
-	sala = ForeignKeyField(Sala, related_name='pacientes', null=True)
-	modeloAgendamento = IntegerField(null=True)
-
 class ModeloAgendamento(db.Model):
 	segunda = BooleanField(null=True)
 	terca = BooleanField(null=True)
@@ -48,6 +40,14 @@ class ModeloAgendamento(db.Model):
 	sabado = BooleanField(null=True)
 	domingo = BooleanField(null=True)
 	periodoDias = IntegerField(null=True)
+
+class Paciente(db.Model):
+	nome = CharField()
+	cpf = CharField()
+	dataNasc = DateTimeField()
+	sexo = IntegerField()
+	sala = ForeignKeyField(Sala, related_name='pacientes', null=True)
+	modeloAgendamento = ForeignKeyField(ModeloAgendamento, null=True)
 
 class AvaliacaoEscalaBraden(db.Model):
 	paciente = ForeignKeyField(Paciente, related_name='avaliacoes')
