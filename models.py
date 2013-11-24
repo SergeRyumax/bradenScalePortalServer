@@ -3,7 +3,8 @@
 import json
 import datetime
 from peewee import *
-from bradenscale import db
+from bradenscale import db, app
+from flask_peewee.rest import RestAPI
 
 class Usuario(db.Model):
 	ADMIN = 0
@@ -25,27 +26,27 @@ class Enfermeiro(db.Model):
 	nome = CharField()
 	sexo = IntegerField()
 	registo = DateTimeField(default=datetime.datetime.now)
-	usuario = ForeignKeyField(Usuario)
 
 class Sala(db.Model):
 	numero = CharField()
 	andar = CharField()
 
 class ModeloAgendamento(db.Model):
-	segunda = BooleanField(null=True)
-	terca = BooleanField(null=True)
-	quarta = BooleanField(null=True)
-	quinta = BooleanField(null=True)
-	sexta = BooleanField(null=True)
-	sabado = BooleanField(null=True)
-	domingo = BooleanField(null=True)
-	periodoDias = IntegerField(null=True)
+	segunda = BooleanField(null=True, default=False)
+	terca = BooleanField(null=True, default=False)
+	quarta = BooleanField(null=True, default=False)
+	quinta = BooleanField(null=True, default=False)
+	sexta = BooleanField(null=True, default=False)
+	sabado = BooleanField(null=True, default=False)
+	domingo = BooleanField(null=True, default=False)
+	periodoDias = IntegerField(null=True, default=0)
 
 class Paciente(db.Model):
 	nome = CharField()
 	cpf = CharField()
 	dataNasc = DateTimeField()
 	sexo = IntegerField()
+	enfermeiro = ForeignKeyField(Enfermeiro, related_name='pacientes', null=True)
 	sala = ForeignKeyField(Sala, related_name='pacientes', null=True)
 	modeloAgendamento = ForeignKeyField(ModeloAgendamento, null=True)
 
@@ -61,3 +62,8 @@ class AvaliacaoEscalaBraden(db.Model):
 	mobilidade = IntegerField()
 	nutricao = IntegerField()
 	friccao = IntegerField()
+
+restApi = RestAPI(app)
+restApi.register(AvaliacaoEscalaBraden)
+restApi.register(Sala)
+restApi.setup()

@@ -38,6 +38,9 @@ def convertSelectToList(modelList):
 def listaJson(dictObject):
 	return Response(json.dumps(dictObject, indent=3), mimetype='application/json')
 
+def recuperaUsuarioAutorizado(tokenLogin):
+	return userResource.byToken(tokenLogin)
+
 class Alive(Resource):
 	def get(self):
 		return 'Is Working'
@@ -78,7 +81,7 @@ class AllUsers(Resource):
 
 class EnfermeirosApi(Resource):
 	def post(self, tokenLogin):
-		userResource.byToken(tokenLogin)
+		recuperaUsuarioAutorizado(tokenLogin)
 
 		args = request.json
 		nome = args['nome']
@@ -93,7 +96,7 @@ class EnfermeirosApi(Resource):
 
 class PacientesApi(Resource):
 	def post(self, tokenLogin):
-		userResource.byToken(tokenLogin)
+		recuperaUsuarioAutorizado(tokenLogin)
 		
 		args = request.json
 		nome = args['nome']
@@ -121,7 +124,7 @@ class PacientesApi(Resource):
 			if paciente.modeloAgendamento is not None:
 				agendamento = paciente.modeloAgendamento
 				tuplaAgend = {}
-				if agendamento.periodoDias is None:
+				if agendamento.periodoDias == 0:
 					tuplaAgend["tipo"] = 'semana'
 					tuplaAgend["segunda"] = agendamento.segunda
 					tuplaAgend["terca"] = agendamento.terca
@@ -141,20 +144,20 @@ class PacientesApi(Resource):
 
 class SalasApi(Resource):
 	def post(self, tokenLogin):
-		userResource.byToken(tokenLogin)
+		recuperaUsuarioAutorizado(tokenLogin)
 		args = request.json
 		sala = Sala.create(numero=args['numero'], andar=args['andar'])
 		return jsonify(salaId=sala.id)
 
 	@marshal_with(salas_field)
 	def get(self, tokenLogin):
-		userResource.byToken(tokenLogin)
+		recuperaUsuarioAutorizado(tokenLogin)
 		salas = Sala.select()
 		return convertSelectToList(salas)
 
 class SalasPacientesApi(Resource):
 	def post(self, tokenLogin, salaId, pacienteId):
-		userResource.byToken(tokenLogin)
+		recuperaUsuarioAutorizado(tokenLogin)
 		paciente = Paciente.get(Paciente.id == pacienteId)
 		paciente.sala = Sala.get(Sala.id == salaId)
 		paciente.save()
@@ -162,7 +165,7 @@ class SalasPacientesApi(Resource):
 
 class SalasPacientesApi(Resource):
 	def post(self, tokenLogin, salaId, pacienteId):
-		userResource.byToken(tokenLogin)
+		recuperaUsuarioAutorizado(tokenLogin)
 
 		paciente = Paciente.get(Paciente.id == pacienteId)
 		paciente.sala = Sala.get(Sala.id == salaId)
@@ -171,6 +174,8 @@ class SalasPacientesApi(Resource):
 
 class ModeloAgendamentosApi(Resource):
 	def post(self, tokenLogin, pacienteId):
+		recuperaUsuarioAutorizado(tokenLogin)
+
 		args = request.json
 		
 		segunda = None
@@ -211,6 +216,50 @@ class ModeloAgendamentosApi(Resource):
 		paciente.save()
 		return jsonify(result="OK")
 
+class CalendarioApi(Resource):
+	def get(self, tokenLogin, dia):
+		recuperaUsuarioAutorizado(tokenLogin)
+
+		dia = datetime.datetime.strptime(dia, DATETIME_FORMAT)
+		
+		hojeZeroHora = datetime.datetime.now().strftime('%Y-%m-%d');
+		hoje = datetime.datetime.strptime(hojeZeroHora, DATETIME_FORMAT)
+		diaAmanha = dia + datetime.timedelta(days=1)
+		
+		listaResult = []
+		if dia <= hoje:
+			for sala in Sala.select():
+				tuplaSala = {}
+				tuplaSala['numero'] = sala.numero;
+				tuplaSala['andar'] = sala.andar;
+				tuplaSala['data'] = dia.strftime('%d/%m/%Y')
+
+				bradenSalaList = []
+				bradenQuery = AvaliacaoEscalaBraden.select().where((AvaliacaoEscalaBraden.sala==sala) & (AvaliacaoEscalaBraden.data>=dia) & (AvaliacaoEscalaBraden.data<diaAmanha))
+				for bradenAval in bradenQuery:
+					#log.d('braden: ' + str(bradenAval.id) + ' / sala: ' + str(bradenAval.sala.numero) + '---' + str(sala.numero) + ' / paciente: ' + str(bradenAval.paciente.id) + ' / data: ' + str(bradenAval.data))
+					tuplaBraden = {}
+					tuplaBraden['id'] = bradenAval.id
+					tuplaBraden['status'] = bradenAval.status
+					tuplaBraden['enfermeiro'] = bradenAval.enfermeiro.nome
+					tuplaBraden['paciente'] = bradenAval.paciente.nome
+					tuplaBraden['hora'] = bradenAval.data.strftime('%H:%M:%S')
+
+					tuplaBraden['percepcaoSensorial'] = bradenAval.percepcaoSensorial
+					tuplaBraden['umidade'] = bradenAval.umidade
+					tuplaBraden['atividade'] = bradenAval.atividade
+					tuplaBraden['mobilidade'] = bradenAval.mobilidade
+					tuplaBraden['nutricao'] = bradenAval.nutricao
+					tuplaBraden['friccao'] = bradenAval.friccao
+
+					bradenSalaList.append(tuplaBraden)
+				tuplaSala['avalicoesBraden'] = bradenSalaList
+
+				listaResult.append(tuplaSala);
+		
+		return listaJson(listaResult)
+
+
 api.add_resource(Alive,'/alive')
 api.add_resource(AllUsers,'/user/')
 api.add_resource(Login, '/user/<string:usuarioLogin>')
@@ -220,3 +269,4 @@ api.add_resource(PacientesApi, '/user/<string:tokenLogin>/paciente')
 api.add_resource(SalasApi, '/user/<string:tokenLogin>/sala')
 api.add_resource(SalasPacientesApi, '/user/<string:tokenLogin>/sala/<int:salaId>/paciente/<int:pacienteId>')
 api.add_resource(ModeloAgendamentosApi, '/user/<string:tokenLogin>/paciente/<int:pacienteId>/agenda')
+api.add_resource(CalendarioApi, '/user/<string:tokenLogin>/calendario/<string:dia>')
