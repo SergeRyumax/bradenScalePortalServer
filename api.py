@@ -8,7 +8,7 @@ import uuid
 import log
 import json
 from models import *
-from bradenscale import app, photos
+from bradenscale import app
 import userResource
 
 import base64
