@@ -1,8 +1,5 @@
 #!/usr/bin/python
 # coding=utf8
-
-from flaskext.uploads import IMAGES
-
 class LocalConfiguration(object):
 	DATABASE = {
 		'name': 'bradenscale',
@@ -12,6 +9,3 @@ class LocalConfiguration(object):
 		'passwd': 'mysql',
 		'engine': 'peewee.MySQLDatabase',
 	}
-	UPLOADS_DEFAULT_DEST='imagensupload/'
-	UPLOADED_FILES_DEST='imagensupload/'
-	UPLOADED_FILES_ALLOW=IMAGES
