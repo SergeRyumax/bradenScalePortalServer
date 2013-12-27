@@ -63,6 +63,15 @@ class AvaliacaoEscalaBraden(db.Model):
 	nutricao = IntegerField()
 	friccao = IntegerField()
 
+class Calendario(db.Model):
+	dia = DateTimeField()
+
+class CalendarioDetalhe(db.Model):
+	calendario = ForeignKeyField(Calendario, related_name='detalhes')
+	paciente = ForeignKeyField(Paciente)
+	avaliacao = ForeignKeyField(AvaliacaoEscalaBraden, null=True)
+
+
 restApi = RestAPI(app)
 restApi.register(AvaliacaoEscalaBraden)
 restApi.register(Sala)

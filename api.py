@@ -216,6 +216,58 @@ class ModeloAgendamentosApi(Resource):
 		return jsonify(result="OK")
 
 class CalendarioApi(Resource):
+	def getUltimaAvaliacaoBraden(self, paciente):
+		query = AvaliacaoEscalaBraden.select()
+		query = query.where(AvaliacaoEscalaBraden.paciente==paciente)
+		query = query.order_by(AvaliacaoEscalaBraden.data.desc())
+		query = query.limit(1)
+		result = None
+		for braden in query:
+			result = braden
+		return result
+
+	def montaCalendarioSeNecessario(self, dia):
+		calend = None
+		try:
+			calend = Calendario.get(Calendario.dia == dia);
+		except DoesNotExist, e:
+			calend = None;
+
+		if (calend is None):
+			calend = Calendario.create(dia = dia)
+			for pac in Paciente.select():
+				modAgend = pac.modeloAgendamento
+				if (modAgend is not None):
+					if (modAgend.periodoDias != 0):
+						braden = self.getUltimaAvaliacaoBraden(pac)
+						log.d(braden.data.strftime('%d/%m/%Y') + " Ultima Data -- " + str(pac.id))
+						if (braden is not None):
+							proximaAvaliacao = braden.data + datetime.timedelta(days=modAgend.periodoDias)
+							if (proximaAvaliacao == dia):
+								CalendarioDetalhe.create(calendario = calend, paciente = pac)
+					else:
+						diaDaSemana = dia.weekday()
+						if (diaDaSemana == 0):
+							criaCalendario = modAgend.segunda
+						if (diaDaSemana == 1):
+							criaCalendario = modAgend.terca
+						if (diaDaSemana == 2):
+							criaCalendario = modAgend.quarta
+						if (diaDaSemana == 3):
+							criaCalendario = modAgend.quinta
+						if (diaDaSemana == 4):
+							criaCalendario = modAgend.sexta
+						if (diaDaSemana == 5):
+							criaCalendario = modAgend.sabado
+						if (diaDaSemana == 6):
+							criaCalendario = modAgend.domingo
+
+						if (criaCalendario):
+							CalendarioDetalhe.create(calendario = calend, paciente = pac)	
+
+		return calend
+
+
 	def get(self, tokenLogin, dia):
 		recuperaUsuarioAutorizado(tokenLogin)
 
@@ -225,6 +277,8 @@ class CalendarioApi(Resource):
 		hoje = datetime.datetime.strptime(hojeZeroHora, DATETIME_FORMAT)
 		diaAmanha = dia + datetime.timedelta(days=1)
 		
+		self.montaCalendarioSeNecessario(dia)
+
 		listaResult = []
 		if dia <= hoje:
 			for sala in Sala.select():

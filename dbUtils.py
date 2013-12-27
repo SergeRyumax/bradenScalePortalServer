@@ -11,6 +11,8 @@ def create_tables():
 	ModeloAgendamento.create_table(True)
 	Paciente.create_table(True)
 	AvaliacaoEscalaBraden.create_table(True)
+	Calendario.create_table(True)
+	CalendarioDetalhe.create_table(True)
 
 DATETIME_FORMAT = '%Y-%m-%d'
 DATETIME_FORMAT_WITH_HOURS = '%Y-%m-%d %H:%M:%S'
