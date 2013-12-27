@@ -2,7 +2,7 @@
 # coding=utf8
 from flask.ext.restful import Resource, Api, reqparse, fields, marshal_with
 
-from flask import request, jsonify, Response
+from flask import request, jsonify, Response, redirect, url_for
 
 import uuid
 import log
@@ -162,14 +162,6 @@ class SalasPacientesApi(Resource):
 		paciente.save()
 		return jsonify(result="OK")
 
-class SalasPacientesApi(Resource):
-	def post(self, tokenLogin, salaId, pacienteId):
-		recuperaUsuarioAutorizado(tokenLogin)
-
-		paciente = Paciente.get(Paciente.id == pacienteId)
-		paciente.sala = Sala.get(Sala.id == salaId)
-		paciente.save()
-		return jsonify(result="OK")
 
 class ModeloAgendamentosApi(Resource):
 	def post(self, tokenLogin, pacienteId):
@@ -252,12 +244,17 @@ class CalendarioApi(Resource):
 					tuplaBraden['friccao'] = bradenAval.friccao
 
 					bradenSalaList.append(tuplaBraden)
-				tuplaSala['avalicoesBraden'] = bradenSalaList
+				tuplaSala['avaliacoesBraden'] = bradenSalaList
 
 				listaResult.append(tuplaSala);
 		
 		return listaJson(listaResult)
 
+
+@app.route('/')
+def index():
+    #return render_template("portalWeb/index.html")
+    return redirect(url_for('static', filename='portalWeb/index.html'))
 
 api.add_resource(Alive,'/alive')
 api.add_resource(AllUsers,'/user/')
