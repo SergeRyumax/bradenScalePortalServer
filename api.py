@@ -2,7 +2,6 @@
 # coding=utf8
 from flask.ext.restful import Resource, Api, reqparse, fields, marshal_with
 
-from flaskext.uploads import *
 from flask import request, jsonify, Response
 
 import uuid
