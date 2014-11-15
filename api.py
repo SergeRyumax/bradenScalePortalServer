@@ -7,7 +7,7 @@ from flask import request, jsonify, Response, redirect, url_for
 import uuid
 import log
 import json
-from models import *
+from dbUtils import *
 from bradenscale import app
 import userResource
 

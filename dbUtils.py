@@ -44,7 +44,7 @@ def populateInit():
 	pac7 = criaPac("Larissa Paciente", "111111111", 1, "1980-10-01", enf2, sala12a)
 	pac8 = criaPac("Paulo Paciente", "111111111", 0, "1980-10-01", enf3, sala12b)
 
-	pac1a = criaPac("Pedro Paciente", "111111111", 0, "1980-10-01", enf1, sala21a)
+	pac1a = criaPac("Pedro Paciente 2", "111111111", 0, "1980-10-01", enf1, sala21a)
 	pac2a = criaPac("Jose Paciente 2", "111111111", 0, "1980-10-01", enf1, sala21a)
 	pac3a = criaPac("Gabriela Paciente 2", "111111111", 1, "1980-10-01", enf1, sala21a)
 	pac4a = criaPac("Rafael Paciente 2", "111111111", 0, "1980-10-01", enf2, sala21b)
@@ -167,9 +167,4 @@ def criaPacienteBraden(paciente):
 	dia = datetime.datetime.strptime('2012-12-10 20:20:02', DATETIME_FORMAT_WITH_HOURS)
 	for i in range(20):
 		criaEscalaBraden(0, dia, paciente, paciente.sala, paciente.enfermeiro, 1)
-		dia = dia + datetime.timedelta(days=2)
-
-
-if __name__ == "__main__":
-	create_tables()
-	populateInit()
+		dia = dia + datetime.timedelta(days=2)	
